@@ -1,0 +1,23 @@
+[workspace]
+resolver = "2"
+members = [
+    "cvlr-solana"
+]
+
+[workspace.package]
+version = "0.3.0"
+authors = ["Certora"]
+description = "Certora Verification Language for Rust with Solana"
+documentation = "https://certora.com"
+
+[workspace.dependencies]
+proc-macro2 = "1"
+quote = "1"
+syn = "2"
+macrotest = "1"
+trybuild = "1"
+
+cvlr-asserts = { git = "https://github.com/1arie1/cvlr.git", version="0.3" }
+cvlr-mathint = { git = "https://github.com/1arie1/cvlr.git", version="0.3" }
+cvlr-nondet = { git = "https://github.com/1arie1/cvlr.git", version="0.3" }
+cvlr-log = { git = "https://github.com/1arie1/cvlr.git", version="0.3" }
