@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.4.0] - 2025-04-04
+
+### Added
+  - prepare release on crates.io
+### Changed
+
+### Removed
+
 
 ## [0.3.1] - 2025-04-04
 
@@ -25,5 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-[unreleased]: https://github.com/Certora/cvlr/compare/v0.3.1...HEAD
+[unreleased]: https://github.com/Certora/cvlr/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Certora/cvlr/releases/tag/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/Certora/cvlr/releases/tag/v0.3.1
