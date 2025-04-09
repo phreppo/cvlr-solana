@@ -13,13 +13,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [0.4.3] 2025-04-09
+
+### Added
+
+### Changed
+  - Update spl-token and spl-token-2022 version requirements to match
+
+### Removed
+  - yank version v0.4.2 because of too many issues with dependency      resolution
+
 ## [0.4.2] 2025-04-09
 
 ### Added
 
 ### Changed
   - Restrict Solana version to v1.18
-  - Update spl-token and spl-token-2022 version requirements to match
 
 ### Removed
   - yank version v0.4.1 because of too many issues with dependency      resolution
@@ -54,7 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-[unreleased]: https://github.com/Certora/cvlr/compare/v0.4.2...HEAD
+[unreleased]: https://github.com/Certora/cvlr/compare/v0.4.3...HEAD
+[0.4.3]: https://github.com/Certora/cvlr/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/Certora/cvlr/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/Certora/cvlr/releases/tag/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/Certora/cvlr/releases/tag/v0.3.1...v0.4.0
