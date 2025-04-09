@@ -8,7 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-  - `pubkey::Pk` is a wrapper for Pubkey for easy logging 
+
+### Changed
+
+### Removed
+
+
+## [0.4.1]
+
+### Added
+  - `pubkey::Pk` is wrapper for Pubkey for easy logging 
 
 ### Changed
 
@@ -34,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-[unreleased]: https://github.com/Certora/cvlr/compare/v0.4.0...HEAD
+[unreleased]: https://github.com/Certora/cvlr/compare/v0.4.1...HEAD
+[0.4.0]: https://github.com/Certora/cvlr/releases/tag/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/Certora/cvlr/releases/tag/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/Certora/cvlr/releases/tag/v0.3.1
