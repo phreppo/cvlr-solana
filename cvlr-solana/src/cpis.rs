@@ -9,6 +9,8 @@ use solana_program::{
 };
 
 /// Creates a `Transfer` instruction.
+#[cvlr_early_panic::early_panic]
+#[inline]
 pub fn transfer(
     token_program_id: &Pubkey,
     source_pubkey: &Pubkey,
@@ -17,7 +19,7 @@ pub fn transfer(
     signer_pubkeys: &[&Pubkey],
     amount: u64,
 ) -> Result<Instruction, ProgramError> {
-    spl_token::check_program_account(token_program_id)?;
+    spl_token::check_program_account(token_program_id).unwrap();
     let data = spl_token::instruction::TokenInstruction::Transfer { amount }.pack();
 
     let mut accounts = Vec::with_capacity(3 + signer_pubkeys.len());
