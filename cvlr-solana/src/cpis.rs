@@ -211,6 +211,17 @@ pub fn cvlr_invoke_transfer(
     account_infos: &[AccountInfo],
 ) -> ProgramResult {
     cvlr_assert!(account_infos.len() == 3);
+    cvlr_invoke_signed_transfer(instruction, account_infos, &[])
+}
+
+#[inline(never)]
+#[cvlr_early_panic::early_panic]
+pub fn cvlr_invoke_signed_transfer(
+    instruction: &Instruction,
+    account_infos: &[AccountInfo],
+    _signers_seeds: &[&[&[u8]]],
+) -> ProgramResult {
+    cvlr_assert!(account_infos.len() >= 3);
     cvlr_assert!(instruction.data.len() > 0);
     cvlr_assert!(instruction.accounts[0].pubkey == *account_infos[0].key);
     cvlr_assert!(instruction.accounts[1].pubkey == *account_infos[1].key);
@@ -229,6 +240,17 @@ pub fn cvlr_invoke_mint_to(
     account_infos: &[AccountInfo],
 ) -> ProgramResult {
     cvlr_assert!(account_infos.len() == 3);
+    cvlr_invoke_signed_mint_to(instruction, account_infos, &[])
+}
+
+#[inline(never)]
+#[cvlr_early_panic::early_panic]
+pub fn cvlr_invoke_signed_mint_to(
+    instruction: &Instruction,
+    account_infos: &[AccountInfo],
+    _signers_seeds: &[&[&[u8]]],
+) -> ProgramResult {
+    cvlr_assert!(account_infos.len() >= 3);
     cvlr_assert!(instruction.data.len() > 0);
     cvlr_assert!(instruction.accounts[0].pubkey == *account_infos[0].key);
     cvlr_assert!(instruction.accounts[1].pubkey == *account_infos[1].key);
@@ -244,6 +266,17 @@ pub fn cvlr_invoke_mint_to(
 #[cvlr_early_panic::early_panic]
 pub fn cvlr_invoke_burn(instruction: &Instruction, account_infos: &[AccountInfo]) -> ProgramResult {
     cvlr_assert!(account_infos.len() == 3);
+    cvlr_invoke_signed_burn(instruction, account_infos, &[])
+}
+
+#[inline(never)]
+#[cvlr_early_panic::early_panic]
+pub fn cvlr_invoke_signed_burn(
+    instruction: &Instruction,
+    account_infos: &[AccountInfo],
+    _signers_seeds: &[&[&[u8]]],
+) -> ProgramResult {
+    cvlr_assert!(account_infos.len() >= 3);
     cvlr_assert!(instruction.data.len() > 0);
     cvlr_assert!(instruction.accounts[0].pubkey == *account_infos[0].key);
     cvlr_assert!(instruction.accounts[1].pubkey == *account_infos[1].key);
@@ -262,6 +295,17 @@ pub fn cvlr_invoke_close_account(
     account_infos: &[AccountInfo],
 ) -> ProgramResult {
     cvlr_assert!(account_infos.len() == 3);
+    cvlr_invoke_signed_close_account(instruction, account_infos, &[])
+}
+
+#[inline(never)]
+#[cvlr_early_panic::early_panic]
+pub fn cvlr_invoke_signed_close_account(
+    instruction: &Instruction,
+    account_infos: &[AccountInfo],
+    _signers_seeds: &[&[&[u8]]],
+) -> ProgramResult {
+    cvlr_assert!(account_infos.len() >= 3);
     cvlr_assert!(instruction.data.len() > 0);
     cvlr_assert!(instruction.accounts[0].pubkey == *account_infos[0].key);
     cvlr_assert!(instruction.accounts[1].pubkey == *account_infos[1].key);
@@ -279,6 +323,17 @@ pub fn cvlr_invoke_transfer_checked(
     account_infos: &[AccountInfo],
 ) -> ProgramResult {
     cvlr_assert!(account_infos.len() == 4);
+    cvlr_invoke_signed_transfer_checked(instruction, account_infos, &[])
+}
+
+#[inline(never)]
+#[cvlr_early_panic::early_panic]
+pub fn cvlr_invoke_signed_transfer_checked(
+    instruction: &Instruction,
+    account_infos: &[AccountInfo],
+    _signers_seeds: &[&[&[u8]]],
+) -> ProgramResult {
+    cvlr_assert!(account_infos.len() >= 4);
     cvlr_assert!(instruction.data.len() > 0);
     cvlr_assert!(instruction.accounts[0].pubkey == *account_infos[0].key);
     cvlr_assert!(instruction.accounts[1].pubkey == *account_infos[1].key);
