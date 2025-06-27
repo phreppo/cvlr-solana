@@ -9,8 +9,6 @@ use solana_program::{
 };
 
 /// Creates a `Transfer` instruction.
-#[cvlr_early_panic::early_panic]
-#[inline]
 pub fn transfer(
     token_program_id: &Pubkey,
     source_pubkey: &Pubkey,
@@ -50,7 +48,7 @@ pub fn mint_to(
     signer_pubkeys: &[&Pubkey],
     amount: u64,
 ) -> Result<Instruction, ProgramError> {
-    spl_token::check_program_account(token_program_id)?;
+    spl_token::check_program_account(token_program_id).unwrap();
     let data = spl_token::instruction::TokenInstruction::MintTo { amount }.pack();
 
     let mut accounts = Vec::with_capacity(3 + signer_pubkeys.len());
@@ -81,7 +79,7 @@ pub fn burn(
     signer_pubkeys: &[&Pubkey],
     amount: u64,
 ) -> Result<Instruction, ProgramError> {
-    spl_token::check_program_account(token_program_id)?;
+    spl_token::check_program_account(token_program_id).unwrap();
     let data = spl_token::instruction::TokenInstruction::Burn { amount }.pack();
 
     let mut accounts = Vec::with_capacity(3 + signer_pubkeys.len());
@@ -104,7 +102,6 @@ pub fn burn(
 }
 
 /// Creates a `CloseAccount` instruction.
-#[cvlr_early_panic::early_panic]
 pub fn close_account(
     token_program_id: &Pubkey,
     account_pubkey: &Pubkey,
@@ -112,7 +109,19 @@ pub fn close_account(
     owner_pubkey: &Pubkey,
     signer_pubkeys: &[&Pubkey],
 ) -> Result<Instruction, ProgramError> {
-    spl_token::check_program_account(token_program_id)?;
+    /// Mock for `spl_token::instruction::TokenInstruction::CloseAccount.pack()`.
+    fn pack_close_account() -> Vec<u8> {
+        let mut buf = Vec::with_capacity(9); // 1 byte for the instruction discriminant and 8 bytes of padding.
+        let padding: u64 = 0;
+        buf.push(9); // 9 is `CloseAccount` discriminant.
+
+        // We extend the buffer with 8 bytes so that the Certora Prover can
+        // correctly recognize the token instruction.
+        buf.extend_from_slice(&padding.to_le_bytes()); // 8 bytes of padding
+        buf
+    }
+
+    spl_token::check_program_account(token_program_id).unwrap();
     // Currently, we cannot use `pack` directly because the PTA analysis in the
     // Certora Prover is not precise enough to handle the case in which the
     // instruction does not carry any data.
@@ -138,21 +147,7 @@ pub fn close_account(
     })
 }
 
-/// Mock for `spl_token::instruction::TokenInstruction::CloseAccount.pack()`.
-fn pack_close_account() -> Vec<u8> {
-    let mut buf = Vec::with_capacity(9); // 1 byte for the instruction discriminant and 8 bytes of padding.
-    let padding: u64 = 0;
-    buf.push(9); // 9 is `CloseAccount` discriminant.
-
-    // We extend the buffer with 8 bytes so that the Certora Prover can
-    // correctly recognize the token instruction.
-    buf.extend_from_slice(&padding.to_le_bytes()); // 8 bytes of padding
-    buf
-}
-
 /// Creates a `TransferChecked` instruction.
-#[inline(never)]
-#[cvlr_early_panic::early_panic]
 pub fn transfer_checked(
     token_program_id: &Pubkey,
     source_pubkey: &Pubkey,
@@ -163,8 +158,7 @@ pub fn transfer_checked(
     amount: u64,
     decimals: u8,
 ) -> Result<Instruction, ProgramError> {
-    // The following is copied by the `spl_token::instruction::transfer_checked` function.
-    spl_token::check_program_account(token_program_id)?;
+    spl_token::check_program_account(token_program_id).unwrap();
     let data =
         spl_token::instruction::TokenInstruction::TransferChecked { amount, decimals }.pack();
 
@@ -192,6 +186,7 @@ pub fn transfer_checked(
 /// returns it. This is used to ensure that the Certora Prover can
 /// recognize the `spl_token` program ID when analyzing the CPI invocations.
 fn write_spl_token_pubkey() -> Pubkey {
+    #[allow(deprecated)]
     let mut pubkey = Pubkey::new(&[0u8; 32]);
     unsafe {
         // Get a mutable pointer to the first byte.
