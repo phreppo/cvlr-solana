@@ -1,3 +1,6 @@
+//! This module provides the functionality for the Certora Prover to
+//! automatically mock SPL Token Program instructions.
+
 use super::token::spl_token_account_get_amount;
 use cvlr_asserts::*;
 use solana_program::{
@@ -7,6 +10,10 @@ use solana_program::{
     program_error::ProgramError,
     pubkey::Pubkey,
 };
+
+/*******************************************************************************
+ * Instructions creation
+ ******************************************************************************/
 
 /// Creates a `Transfer` instruction.
 pub fn transfer(
@@ -201,6 +208,10 @@ fn write_spl_token_pubkey() -> Pubkey {
     pubkey
 }
 
+/*******************************************************************************
+ * Instructions mocks
+ ******************************************************************************/
+
 #[inline(never)]
 #[cvlr_early_panic::early_panic]
 pub fn cvlr_invoke_transfer(
@@ -343,6 +354,9 @@ pub fn cvlr_invoke_signed_transfer_checked(
     super::token::spl_token_transfer(src_info, dst_info, authority_info, amount)
 }
 
+/// Macro to initialize the CVLR Solana module.
+/// This macro is used to set up the necessary code for the Certora Prover to
+/// automatically mock SPL Token Program instructions.
 #[macro_export]
 macro_rules! cvlr_solana_init {
     () => {
@@ -353,242 +367,34 @@ macro_rules! cvlr_solana_init {
         #[no_mangle]
         pub fn $wrapper_name() {
             use cvlr_solana::cpis::*;
-            rule_to_compile_transfer();
-            rule_to_compile_mint_to();
-            rule_to_compile_burn();
-            rule_to_compile_close_account();
-            rule_to_compile_transfer_checked();
+            make_invoke_mocks_available();
         }
     };
 }
 
-pub fn rule_to_compile_transfer() {
+/// This function is called to make the invoke mocks available for the
+/// Certora Prover to use. This can be automatically injected in the analyzed
+/// code with the `cvlr_solana_init!` macro.
+pub fn make_invoke_mocks_available() {
     let account_infos = super::cvlr_deserialize_nondet_accounts();
     let account_info_iter = &mut account_infos.iter();
-    let token_program: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let from: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let to: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let _authority: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let amount: u64 = cvlr_nondet::nondet();
-    let decimals: u8 = cvlr_nondet::nondet();
+    let acc1: &AccountInfo = next_account_info(account_info_iter).unwrap();
+    let acc2: &AccountInfo = next_account_info(account_info_iter).unwrap();
+    let acc3: &AccountInfo = next_account_info(account_info_iter).unwrap();
+    let acc4: &AccountInfo = next_account_info(account_info_iter).unwrap();
+    let nondet: u64 = cvlr_nondet::nondet();
     let mut token_instruction_data = Vec::new();
-    token_instruction_data.extend_from_slice(&amount.to_le_bytes());
-    token_instruction_data.extend_from_slice(&decimals.to_le_bytes());
-    cvlr_assume!(from.key != to.key);
-    let from_wallet_amount_pre = spl_token_account_get_amount(from);
-    let to_wallet_amount_pre = spl_token_account_get_amount(to);
-    process_transfer(&account_infos, &token_instruction_data).unwrap();
-    let from_wallet_amount_post = spl_token_account_get_amount(from);
-    let to_wallet_amount_post = spl_token_account_get_amount(to);
-    cvlr_assert!(*token_program.key == spl_token::id());
-    cvlr_assert!(from_wallet_amount_post == from_wallet_amount_pre - amount);
-    cvlr_assert!(to_wallet_amount_post == to_wallet_amount_pre + amount);
-}
-
-pub fn process_transfer(
-    accounts: &[AccountInfo],
-    instruction_data: &[u8],
-) -> Result<(), ProgramError> {
-    let token_program = &accounts[0];
-    let from = &accounts[1];
-    let to = &accounts[2];
-    let authority = &accounts[3];
-    let amount = u64::from_le_bytes(
-        instruction_data[..8]
-            .try_into()
-            .expect("Invalid slice length"),
-    );
-    let instruction = transfer(
-        token_program.key,
-        from.key,
-        to.key,
-        authority.key,
-        &[],
-        amount,
-    )?;
-    let account_infos = vec![from.clone(), to.clone(), authority.clone()];
-    cvlr_invoke_transfer(&instruction, &account_infos)?;
-    Ok(())
-}
-
-pub fn rule_to_compile_mint_to() {
-    let account_infos = super::cvlr_deserialize_nondet_accounts();
-    let account_info_iter = &mut account_infos.iter();
-    let token_program: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let from: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let to: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let _authority: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let amount: u64 = cvlr_nondet::nondet();
-    let decimals: u8 = cvlr_nondet::nondet();
-    let mut token_instruction_data = Vec::new();
-    token_instruction_data.extend_from_slice(&amount.to_le_bytes());
-    token_instruction_data.extend_from_slice(&decimals.to_le_bytes());
-    cvlr_assume!(from.key != to.key);
-    let from_wallet_amount_pre = spl_token_account_get_amount(from);
-    let to_wallet_amount_pre = spl_token_account_get_amount(to);
-    process_mint_to(&account_infos, &token_instruction_data).unwrap();
-    let from_wallet_amount_post = spl_token_account_get_amount(from);
-    let to_wallet_amount_post = spl_token_account_get_amount(to);
-    cvlr_assert!(*token_program.key == spl_token::id());
-    cvlr_assert!(from_wallet_amount_post == from_wallet_amount_pre - amount);
-    cvlr_assert!(to_wallet_amount_post == to_wallet_amount_pre + amount);
-}
-
-pub fn process_mint_to(
-    accounts: &[AccountInfo],
-    instruction_data: &[u8],
-) -> Result<(), ProgramError> {
-    let token_program = &accounts[0];
-    let from = &accounts[1];
-    let to = &accounts[2];
-    let authority = &accounts[3];
-    let amount = u64::from_le_bytes(
-        instruction_data[..8]
-            .try_into()
-            .expect("Invalid slice length"),
-    );
-    let instruction = transfer(
-        token_program.key,
-        from.key,
-        to.key,
-        authority.key,
-        &[],
-        amount,
-    )?;
-    let account_infos = vec![from.clone(), to.clone(), authority.clone()];
-    cvlr_invoke_mint_to(&instruction, &account_infos)?;
-    Ok(())
-}
-
-pub fn rule_to_compile_burn() {
-    let account_infos = super::cvlr_deserialize_nondet_accounts();
-    let account_info_iter = &mut account_infos.iter();
-    let token_program: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let from: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let to: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let _authority: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let amount: u64 = cvlr_nondet::nondet();
-    let decimals: u8 = cvlr_nondet::nondet();
-    let mut token_instruction_data = Vec::new();
-    token_instruction_data.extend_from_slice(&amount.to_le_bytes());
-    token_instruction_data.extend_from_slice(&decimals.to_le_bytes());
-    cvlr_assume!(from.key != to.key);
-    let from_wallet_amount_pre = spl_token_account_get_amount(from);
-    let to_wallet_amount_pre = spl_token_account_get_amount(to);
-    process_burn(&account_infos, &token_instruction_data).unwrap();
-    let from_wallet_amount_post = spl_token_account_get_amount(from);
-    let to_wallet_amount_post = spl_token_account_get_amount(to);
-    cvlr_assert!(*token_program.key == spl_token::id());
-    cvlr_assert!(from_wallet_amount_post == from_wallet_amount_pre - amount);
-    cvlr_assert!(to_wallet_amount_post == to_wallet_amount_pre + amount);
-}
-
-pub fn process_burn(accounts: &[AccountInfo], instruction_data: &[u8]) -> Result<(), ProgramError> {
-    let token_program = &accounts[0];
-    let src = &accounts[1];
-    let to = &accounts[2];
-    let authority = &accounts[3];
-    let amount = u64::from_le_bytes(
-        instruction_data[..8]
-            .try_into()
-            .expect("Invalid slice length"),
-    );
-    let instruction = transfer(
-        token_program.key,
-        src.key,
-        to.key,
-        authority.key,
-        &[],
-        amount,
-    )?;
-    let account_infos = vec![src.clone(), to.clone(), authority.clone()];
-    cvlr_invoke_burn(&instruction, &account_infos)?;
-    Ok(())
-}
-
-pub fn rule_to_compile_close_account() {
-    let account_infos = super::cvlr_deserialize_nondet_accounts();
-    let account_info_iter = &mut account_infos.iter();
-    let token_program: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let from: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let to: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let _authority: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let amount: u64 = cvlr_nondet::nondet();
-    let decimals: u8 = cvlr_nondet::nondet();
-    let mut token_instruction_data = Vec::new();
-    token_instruction_data.extend_from_slice(&amount.to_le_bytes());
-    token_instruction_data.extend_from_slice(&decimals.to_le_bytes());
-    cvlr_assume!(from.key != to.key);
-    let from_wallet_amount_pre = spl_token_account_get_amount(from);
-    let to_wallet_amount_pre = spl_token_account_get_amount(to);
-    process_close_account(&account_infos, &token_instruction_data).unwrap();
-    let from_wallet_amount_post = spl_token_account_get_amount(from);
-    let to_wallet_amount_post = spl_token_account_get_amount(to);
-    cvlr_assert!(*token_program.key == spl_token::id());
-    cvlr_assert!(from_wallet_amount_post == from_wallet_amount_pre - amount);
-    cvlr_assert!(to_wallet_amount_post == to_wallet_amount_pre + amount);
-}
-
-pub fn process_close_account(
-    accounts: &[AccountInfo],
-    _instruction_data: &[u8],
-) -> Result<(), ProgramError> {
-    let token_program = &accounts[0];
-    let src = &accounts[1];
-    let to = &accounts[2];
-    let authority = &accounts[3];
-    let instruction = close_account(token_program.key, src.key, to.key, authority.key, &[])?;
-    let account_infos = vec![src.clone(), to.clone(), authority.clone()];
-    cvlr_invoke_close_account(&instruction, &account_infos)?;
-    Ok(())
-}
-
-pub fn rule_to_compile_transfer_checked() {
-    let account_infos = super::cvlr_deserialize_nondet_accounts();
-    let account_info_iter = &mut account_infos.iter();
-    let token_program: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let from: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let _mint: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let to: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let _authority: &AccountInfo = next_account_info(account_info_iter).unwrap();
-    let amount: u64 = cvlr_nondet::nondet();
-    let decimals: u8 = cvlr_nondet::nondet();
-    let mut token_instruction_data = Vec::new();
-    token_instruction_data.extend_from_slice(&amount.to_le_bytes());
-    token_instruction_data.extend_from_slice(&decimals.to_le_bytes());
-    cvlr_assume!(from.key != to.key);
-    let from_wallet_amount_pre = spl_token_account_get_amount(from);
-    let to_wallet_amount_pre = spl_token_account_get_amount(to);
-    process_transfer_checked(&account_infos, &token_instruction_data).unwrap();
-    let from_wallet_amount_post = spl_token_account_get_amount(from);
-    let to_wallet_amount_post = spl_token_account_get_amount(to);
-    cvlr_assert!(*token_program.key == spl_token::id());
-    cvlr_assert!(from_wallet_amount_post == from_wallet_amount_pre - amount);
-    cvlr_assert!(to_wallet_amount_post == to_wallet_amount_pre + amount);
-}
-
-pub fn process_transfer_checked(
-    accounts: &[AccountInfo],
-    instruction_data: &[u8],
-) -> Result<(), ProgramError> {
-    let token_program = &accounts[0];
-    let from = &accounts[1];
-    let mint = &accounts[2];
-    let to = &accounts[3];
-    let authority = &accounts[4];
-    let amount = u64::from_le_bytes(instruction_data[..8].try_into().unwrap());
-    let decimals = u8::from_le_bytes(instruction_data[8..9].try_into().unwrap());
-    let instruction = transfer_checked(
-        token_program.key,
-        from.key,
-        mint.key,
-        to.key,
-        authority.key,
-        &[],
-        amount,
-        decimals,
-    )?;
-    let account_infos = vec![from.clone(), mint.clone(), to.clone(), authority.clone()];
-    cvlr_invoke_transfer_checked(&instruction, &account_infos)?;
-    Ok(())
+    token_instruction_data.extend_from_slice(&nondet.to_le_bytes());
+    // Any instruction can be used here.
+    let instruction = transfer(acc1.key, acc2.key, acc3.key, acc4.key, &[], nondet).unwrap();
+    cvlr_invoke_transfer(&instruction, &account_infos).unwrap();
+    cvlr_invoke_signed_transfer(&instruction, &account_infos, &[]).unwrap();
+    cvlr_invoke_burn(&instruction, &account_infos).unwrap();
+    cvlr_invoke_signed_burn(&instruction, &account_infos, &[]).unwrap();
+    cvlr_invoke_mint_to(&instruction, &account_infos).unwrap();
+    cvlr_invoke_signed_mint_to(&instruction, &account_infos, &[]).unwrap();
+    cvlr_invoke_close_account(&instruction, &account_infos).unwrap();
+    cvlr_invoke_signed_close_account(&instruction, &account_infos, &[]).unwrap();
+    cvlr_invoke_transfer_checked(&instruction, &account_infos).unwrap();
+    cvlr_invoke_signed_transfer_checked(&instruction, &account_infos, &[]).unwrap();
 }
